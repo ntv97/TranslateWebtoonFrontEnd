@@ -11,10 +11,29 @@ const ImageUpload: React.FC = () => {
   const [imageInfos, setImageInfos] = useState<Array<IFile>>([]);
   const [resImg, setResImg] = useState<string>("");;
 
-  const selectImage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const selectImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files as FileList;
     setCurrentImage(selectedFiles?.[0]);
     //setPreviewImage(URL.createObjectURL(selectedFiles?.[0]));
+    let formData = new FormData();
+
+    formData.append("webtoon_img", selectedFiles?.[0]);
+    formData.append("name","manhwa");
+
+    await fetch('http://localhost:8000/api/image/resize', {
+       method: "POST",
+       body: formData
+    }).then((response) => response.blob())
+    .then( myBlob => {
+      setMessage("Original Image")
+      console.log(myBlob);
+      const img = URL.createObjectURL(myBlob);
+      setPreviewImage(img);
+      console.log(img);
+    }).catch((err) => {
+      setMessage("Error after making POST request")
+    });
+
     console.log(selectedFiles?.[0])
     setProgress(0);
   };
@@ -32,7 +51,7 @@ const ImageUpload: React.FC = () => {
     formData.append("webtoon_img", currentImage);
     formData.append("name","manhwa");
 
-    await fetch('http://localhost:8000/api/image', {
+    await fetch('http://localhost:8000/api/image/translate', {
        method: "POST",
        body: formData
     }).then((response) => response.blob())
